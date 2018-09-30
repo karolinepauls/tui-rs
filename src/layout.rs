@@ -288,8 +288,8 @@ impl Rect {
         }
     }
 
-    pub fn area(self) -> u16 {
-        self.width * self.height
+    pub fn area(self) -> u32 {
+        u32::from(self.width) * u32::from(self.height)
     }
 
     pub fn left(self) -> u16 {

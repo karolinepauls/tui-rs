@@ -189,7 +189,7 @@ impl Buffer {
             y,
             self.area
         );
-        ((y - self.area.y) * self.area.width + (x - self.area.x)) as usize
+        usize::from(y - self.area.y) * usize::from(self.area.width) + usize::from(x - self.area.x)
     }
 
     /// Returns the (global) coordinates of a cell given its index
