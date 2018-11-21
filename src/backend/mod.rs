@@ -3,6 +3,9 @@ use std::io;
 use buffer::Cell;
 use layout::Rect;
 
+mod dummy;
+pub use self::dummy::{DummyBackend, DummyBuffer};
+
 #[cfg(feature = "rustbox")]
 mod rustbox;
 #[cfg(feature = "rustbox")]

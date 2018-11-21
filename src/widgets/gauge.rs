@@ -78,7 +78,7 @@ impl<'a> Widget for Gauge<'a> {
         }
 
         let center = gauge_area.height / 2 + gauge_area.top();
-        let width = (gauge_area.width * self.percent) / 100;
+        let width = (f32::from(gauge_area.width) * f32::from(self.percent) / 100.0) as u16;
         let end = gauge_area.left() + width;
         for y in gauge_area.top()..gauge_area.bottom() {
             // Gauge
