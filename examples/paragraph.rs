@@ -14,7 +14,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Paragraph, Text, Widget};
+use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
 use tui::Terminal;
 
 use util::event::{Event, Events};
@@ -30,12 +30,15 @@ fn main() -> Result<(), failure::Error> {
 
     let events = Events::new();
 
+    let mut scroll: u16 = 0;
     loop {
         terminal.draw(|mut f| {
             let size = f.size();
 
-            let mut long_line: String = std::iter::repeat('X').take(size.width.into()).collect();
-            long_line.insert_str(0, "Very long line: ");
+            // Words made "loooong" to demonstrate line breaking.
+            let s = "コンピュータ上で文字を扱う場合、典型的には文字による通信を行う場合にその両端点では、";
+            //let s = "Veeeeeeeeeeeeeeeery    loooooooooooooooooong   striiiiiiiiiiiiiiiiiiiiiiiiiing.   ";
+            let mut long_line = s.repeat(usize::from(size.width) / s.len() + 4);
             long_line.push('\n');
 
             Block::default()
@@ -47,41 +50,57 @@ fn main() -> Result<(), failure::Error> {
                 .margin(5)
                 .constraints(
                     [
-                        Constraint::Percentage(30),
-                        Constraint::Percentage(30),
-                        Constraint::Percentage(30),
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
+                        Constraint::Percentage(25),
                     ]
                     .as_ref(),
                 )
                 .split(size);
 
             let text = [
-                Text::raw("This a line\n"),
-                Text::styled("This a line\n", Style::default().fg(Color::Red)),
-                Text::styled("This a line\n", Style::default().bg(Color::Blue)),
+                Text::raw("コンピュータ上で \n"),
+                Text::styled("This is a line   \n", Style::default().fg(Color::Red)),
+                Text::styled("This is a line\n", Style::default().bg(Color::Blue)),
                 Text::styled(
-                    "This a longer line\n",
+                    "This is a longer line\n",
                     Style::default().modifier(Modifier::CrossedOut),
                 ),
-                Text::raw(&long_line),
+                Text::styled(&long_line, Style::default().bg(Color::Green)),
                 Text::styled(
-                    "This a line\n",
+                    "This is a line\n",
                     Style::default().fg(Color::Green).modifier(Modifier::Italic),
                 ),
             ];
 
+            let block = Block::default()
+                .borders(Borders::ALL)
+                .title_style(Style::default().modifier(Modifier::Bold));
             Paragraph::new(text.iter())
+                .block(block.clone().title("Left, no wrap"))
                 .alignment(Alignment::Left)
                 .render(&mut f, chunks[0]);
             Paragraph::new(text.iter())
-                .alignment(Alignment::Center)
+                .block(block.clone().title("Left, wrap"))
+                .alignment(Alignment::Left)
                 .wrap(true)
                 .render(&mut f, chunks[1]);
             Paragraph::new(text.iter())
-                .alignment(Alignment::Right)
+                .block(block.clone().title("Center, wrap"))
+                .alignment(Alignment::Center)
                 .wrap(true)
+                .scroll(scroll)
                 .render(&mut f, chunks[2]);
+            Paragraph::new(text.iter())
+                .block(block.clone().title("Right, wrap"))
+                .alignment(Alignment::Right)
+                .wrap(scroll > 5)
+                .render(&mut f, chunks[3]);
         })?;
+
+        scroll += 1;
+        scroll %= 10;
 
         match events.next()? {
             Event::Input(key) => {
